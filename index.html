@@ -3,193 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOGO DRAMA - FIX TOTAL</title>
+    <title>GOGO DRAMA - Melolo VideoID Fix</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #fff; margin: 0; }
-        header { background: #111; padding: 15px; text-align: center; border-bottom: 3px solid #e91e63; position: sticky; top: 0; z-index: 100; }
-        .tabs { display: flex; justify-content: center; gap: 10px; padding: 10px; background: #111; overflow-x: auto; }
-        .tab { background: #222; padding: 10px 18px; border-radius: 20px; cursor: pointer; border: 1px solid #333; white-space: nowrap; transition: 0.3s; }
-        .tab.active { background: #e91e63; border-color: #fff; font-weight: bold; }
-        #search-container { padding: 15px; text-align: center; }
+        body { font-family: sans-serif; background: #0a0a0a; color: #fff; margin: 0; }
+        header { background: #111; padding: 15px; text-align: center; border-bottom: 3px solid #e91e63; }
+        .tabs { display: flex; justify-content: center; gap: 8px; padding: 10px; background: #111; overflow-x: auto; }
+        .tab { background: #222; padding: 8px 15px; border-radius: 20px; cursor: pointer; border: 1px solid #333; white-space: nowrap; }
+        .tab.active { background: #e91e63; border-color: #fff; }
+        #search-box { padding: 10px; text-align: center; }
         #search { width: 90%; max-width: 500px; padding: 12px; border-radius: 25px; border: 1px solid #444; background: #1a1a1a; color: #fff; outline: none; }
-        #content { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: #151515; border-radius: 12px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.3s; position: relative; }
-        .card:hover { border-color: #e91e63; transform: scale(1.02); }
-        .card img { width: 100%; height: 210px; object-fit: cover; background: #222; }
-        .card-info { padding: 8px; font-size: 0.85em; font-weight: bold; text-align: center; background: rgba(0,0,0,0.7); position: absolute; bottom: 0; width: 100%; box-sizing: border-box; }
-        #detail-page { display: none; padding: 20px; background: #000; min-height: 100vh; position: fixed; top: 0; left: 0; width: 100%; overflow-y: auto; z-index: 999; }
-        .player-box { width: 100%; max-width: 800px; margin: 0 auto; }
-        video { width: 100%; aspect-ratio: 16/9; border: 1px solid #333; background: #000; }
-        .ep-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; margin-top: 20px; }
-        .ep-btn { background: #222; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; border: 1px solid #444; }
+        #content { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: #151515; border-radius: 10px; overflow: hidden; border: 1px solid #222; cursor: pointer; position: relative; }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
+        .card-title { padding: 8px; font-size: 0.8em; text-align: center; background: rgba(0,0,0,0.8); position: absolute; bottom: 0; width: 100%; }
+        #detail-page { display: none; padding: 20px; background: #000; min-height: 100vh; position: fixed; top: 0; left: 0; width: 100%; overflow-y: auto; z-index: 1000; }
+        video { width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #333; }
+        .ep-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 15px; }
+        .ep-btn { background: #222; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #444; font-size: 0.8em; }
         .ep-btn.active { background: #e91e63; border-color: #fff; }
-        #btn-back { background: #e91e63; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
-        #loading { text-align: center; padding: 30px; display: none; color: #e91e63; font-weight: bold; font-size: 1.2em; }
+        #loading { text-align: center; padding: 20px; display: none; color: #e91e63; font-weight: bold; }
+        #btn-back { background: #e91e63; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
         @media (max-width: 600px) { #content { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
 <header><h1>GOGO SHORT DRAMA</h1></header>
-
 <div class="tabs">
     <div class="tab active" data-src="melolo">Melolo</div>
     <div class="tab" data-src="dramabox">DramaBox</div>
     <div class="tab" data-src="freereels">FreeReels</div>
     <div class="tab" data-src="reelshort">Reelshort</div>
 </div>
-
-<div id="search-container">
-    <input type="text" id="search" placeholder="Cari judul drama...">
-</div>
-
-<div id="loading">SEDANG MENEMBUS API...</div>
+<div id="search-box"><input type="text" id="search" placeholder="Cari drama..."></div>
+<div id="loading">TUNNGU BRE...</div>
 <div id="content"></div>
 
 <div id="detail-page">
     <button id="btn-back">← KEMBALI</button>
-    <div class="player-box">
-        <video id="video-player" controls poster="https://via.placeholder.com/800x450?text=Pilih+Episode"></video>
-    </div>
-    <h2 id="det-title" style="color:#e91e63; margin-top:15px;"></h2>
-    <p id="det-desc" style="color:#ccc; font-size:0.9em; line-height:1.4;"></p>
-    <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-    <h3>Daftar Episode</h3>
-    <div class="ep-list" id="ep-list"></div>
+    <video id="player" controls></video>
+    <h2 id="det-title" style="color:#e91e63"></h2>
+    <p id="det-desc" style="color:#aaa; font-size:0.9em"></p>
+    <div class="ep-list" id="ep-container"></div>
 </div>
 
 <script>
     const PROXY = "https://api.tatsumi-crew.net/proxy.php?url=";
-    const API_BASE = "https://api.sonzaix.indevs.in";
+    const API = "https://api.sonzaix.indevs.in";
     let currentSrc = 'melolo';
-    let currentId = '';
+    let currentDramaId = '';
 
-    // Helper Proxy
-    function fixUrl(url) {
-        if (!url) return '';
-        return PROXY + encodeURIComponent(url);
-    }
+    function wrap(url) { return url ? PROXY + encodeURIComponent(url) : ''; }
 
-    async function loadDrama(path) {
-        const loading = document.getElementById('loading');
+    async function loadList(path) {
+        document.getElementById('loading').style.display = 'block';
         const container = document.getElementById('content');
-        loading.style.display = 'block';
         container.innerHTML = '';
-
         try {
-            const res = await fetch(fixUrl(API_BASE + path));
+            const res = await fetch(wrap(API + path));
             const json = await res.json();
+            let items = [];
             
-            let allBooks = [];
-
-            // FIX: Logika sakti buat nge-scan SEMUA books di dalam data
-            if (json.data && Array.isArray(json.data)) {
-                json.data.forEach(item => {
-                    if (item.books && Array.isArray(item.books)) {
-                        allBooks = allBooks.concat(item.books);
-                    } else if (item.drama_id || item.id) {
-                        allBooks.push(item);
-                    }
+            // Logic scan deep buat dapetin semua 'books'
+            if (Array.isArray(json.data)) {
+                json.data.forEach(d => {
+                    if (d.books) items = items.concat(d.books);
+                    else items.push(d);
                 });
             }
 
-            if (allBooks.length === 0) {
-                container.innerHTML = '<p style="text-align:center; width:100%;">Data gak ketemu bre!</p>';
-            }
-
-            allBooks.forEach(d => {
+            items.forEach(d => {
                 const id = d.drama_id || d.bookId || d.id;
-                const title = d.drama_name || d.title;
-                const thumb = d.thumb_url || d.horizontal_url || d.cover || d.cover_url;
-
+                const img = d.thumb_url || d.horizontal_url || d.cover || d.cover_url;
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `
-                    <img src="${fixUrl(thumb)}" onerror="this.src='https://via.placeholder.com/150x210?text=No+Img'">
-                    <div class="card-info">${title}</div>
-                `;
-                card.onclick = () => showDetail(id, title);
+                card.innerHTML = `<img src="${wrap(img)}"><div class="card-title">${d.drama_name || d.title}</div>`;
+                card.onclick = () => showDetail(id, d.drama_name || d.title);
                 container.appendChild(card);
             });
-        } catch (e) {
-            container.innerHTML = '<p style="color:red; text-align:center;">Gagal muat data!</p>';
-        }
-        loading.style.display = 'none';
+        } catch (e) { console.log(e); }
+        document.getElementById('loading').style.display = 'none';
     }
 
     async function showDetail(id, title) {
-        currentId = id;
+        currentDramaId = id;
         document.getElementById('loading').style.display = 'block';
-        const epContainer = document.getElementById('ep-list');
-        epContainer.innerHTML = '';
-
+        const list = document.getElementById('ep-container');
+        list.innerHTML = '';
+        
         try {
             let path = `/${currentSrc}/detail/${id}`;
             if(currentSrc === 'freereels') path = `/freereels/detail?dramaId=${id}`;
             if(currentSrc === 'reelshort') path = `/reelshort/detail?bookId=${id}`;
 
-            const res = await fetch(fixUrl(API_BASE + path));
+            const res = await fetch(wrap(API + path));
             const json = await res.json();
-            
-            // Ambil data detail (handle nested books juga)
-            const d = json.data?.books ? json.data.books[0] : (json.data || json);
+            const data = json.data?.books ? json.data.books[0] : (json.data || json);
 
             document.getElementById('det-title').textContent = title;
-            document.getElementById('det-desc').textContent = d.description || d.synopsis || '';
+            document.getElementById('det-desc').textContent = data.description || '';
 
-            // Episode Rendering
-            if (currentSrc === 'melolo' && json.video_list) {
-                json.video_list.forEach(v => createEp(v.episode, v.video_id));
+            // FIX MELOLO: Ambil video_id dari video_list
+            if (currentSrc === 'melolo' && data.video_list) {
+                data.video_list.forEach(v => {
+                    createBtn(v.episode, v.video_id); // Kirim video_id aslinya
+                });
             } else {
-                const total = d.episode_count || (d.chapterList ? d.chapterList.length : 0);
-                for(let i=1; i<=total; i++) createEp(i, i-1);
+                // Sumber lain pake index
+                const count = data.episode_count || (data.chapterList ? data.chapterList.length : 0);
+                for(let i=1; i<=count; i++) createBtn(i, i-1);
             }
-
             document.getElementById('detail-page').style.display = 'block';
-        } catch (e) { alert("Gagal ambil detail!"); }
+        } catch (e) { alert("Gagal detail!"); }
         document.getElementById('loading').style.display = 'none';
     }
 
-    function createEp(label, val) {
+    function createBtn(label, val) {
         const b = document.createElement('div');
         b.className = 'ep-btn';
         b.textContent = `EP ${label}`;
-        b.onclick = async () => {
+        b.onclick = () => {
             document.querySelectorAll('.ep-btn').forEach(x => x.classList.remove('active'));
             b.classList.add('active');
-            playStream(val);
+            play(val);
         };
-        document.getElementById('ep-list').appendChild(b);
+        document.getElementById('ep-container').appendChild(b);
     }
 
-    async function playStream(ep) {
+    async function play(vid) {
         try {
-            let path = `/${currentSrc}/stream/${ep}`;
-            if(currentSrc === 'dramabox') path = `/dramabox/stream?dramaId=${currentId}&episodeIndex=${ep}`;
-            if(currentSrc === 'freereels') path = `/freereels/stream?dramaId=${currentId}&episode=${parseInt(ep)+1}`;
-            if(currentSrc === 'reelshort') path = `/reelshort/stream?bookId=${currentId}&episodeNumber=${parseInt(ep)+1}`;
+            let path = `/${currentSrc}/stream/${vid}`; // Melolo dapet video_id di sini
+            if(currentSrc === 'dramabox') path = `/dramabox/stream?dramaId=${currentDramaId}&episodeIndex=${vid}`;
+            if(currentSrc === 'freereels') path = `/freereels/stream?dramaId=${currentDramaId}&episode=${parseInt(vid)+1}`;
+            if(currentSrc === 'reelshort') path = `/reelshort/stream?bookId=${currentDramaId}&episodeNumber=${parseInt(vid)+1}`;
 
-            const res = await fetch(fixUrl(API_BASE + path));
+            const res = await fetch(wrap(API + path));
             const json = await res.json();
-            const url = json.data?.qualities?.[0]?.videoPath || json.data?.video_url || json.video_url || json.url;
+            const vUrl = json.data?.qualities?.[0]?.videoPath || json.data?.video_url || json.video_url || json.url;
 
-            if (url) {
-                const v = document.getElementById('video-player');
-                v.src = fixUrl(url); // Video diproxy biar lancar
-                v.play();
+            if (vUrl) {
+                const p = document.getElementById('player');
+                p.src = wrap(vUrl);
+                p.play();
                 window.scrollTo(0,0);
-            } else { alert("Link tewas!"); }
-        } catch (e) { alert("Stream Error!"); }
+            } else { alert("Link mampus!"); }
+        } catch (e) { alert("Error Stream!"); }
     }
 
-    // Tabs & Search
+    // Tab & Search Logic
     document.querySelectorAll('.tab').forEach(t => {
         t.onclick = () => {
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             t.classList.add('active');
             currentSrc = t.dataset.src;
-            loadDrama(`/${currentSrc}/populer?page=1`);
-        };
+            loadList(`/${currentSrc}/populer?page=1`);
+        }
     });
 
     document.getElementById('search').oninput = debounce((e) => {
@@ -197,20 +165,18 @@
         if(q.length > 2) {
             let p = `/${currentSrc}/search?q=${encodeURIComponent(q)}&page=1`;
             if(currentSrc === 'reelshort') p = `/reelshort/search?query=${encodeURIComponent(q)}`;
-            loadDrama(p);
-        } else { loadDrama(`/${currentSrc}/populer?page=1`); }
+            loadList(p);
+        } else { loadList(`/${currentSrc}/populer?page=1`); }
     }, 600);
 
     document.getElementById('btn-back').onclick = () => {
         document.getElementById('detail-page').style.display = 'none';
-        const v = document.getElementById('video-player');
-        v.pause(); v.src = '';
+        document.getElementById('player').pause();
     };
 
     function debounce(f, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), w); }; }
 
-    // Init
-    loadDrama('/melolo/populer?page=1');
+    loadList('/melolo/populer?page=1');
 </script>
 </body>
 </html>
