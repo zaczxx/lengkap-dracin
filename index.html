@@ -1,188 +1,161 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DRAMA BY ZN</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #080808; color: #fff; margin: 0; padding: 0; }
-    header { background: #111; padding: 20px; text-align: center; border-bottom: 3px solid #e91e63; }
-    h1 { margin: 0; font-size: 1.8em; color: #e91e63; text-shadow: 0 0 10px #e91e63; }
-    .tabs { display: flex; justify-content: center; gap: 10px; padding: 15px; background: #111; position: sticky; top: 0; z-index: 100; }
-    .tab { background: #222; padding: 10px 20px; border-radius: 25px; cursor: pointer; border: 1px solid #333; transition: 0.3s; font-weight: bold; }
-    .tab.active { background: #e91e63; border-color: #fff; }
-    #search-box { padding: 15px; text-align: center; }
-    #search { width: 90%; max-width: 600px; padding: 15px; border-radius: 30px; border: 1px solid #333; background: #1a1a1a; color: #fff; font-size: 1em; outline: none; }
-    #search:focus { border-color: #e91e63; box-shadow: 0 0 10px #e91e6355; }
-    #content { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; padding: 20px; }
-    .card { background: #111; border-radius: 15px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.3s; }
-    .card:hover { transform: scale(1.03); border-color: #e91e63; }
-    .card img { width: 100%; height: 230px; object-fit: cover; display: block; }
-    .card-title { padding: 10px; font-size: 0.9em; font-weight: bold; text-align: center; background: rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #detail-page { display: none; padding: 20px; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; overflow-y: auto; }
-    .player-container { width: 100%; max-width: 900px; margin: 0 auto; background: #000; }
-    video { width: 100%; aspect-ratio: 16/9; border: 1px solid #333; }
-    .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 20px; padding-bottom: 50px; }
-    .ep-item { background: #222; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; border: 1px solid #444; }
-    .ep-item.active { background: #e91e63; border-color: #fff; }
-    #btn-back { background: #e91e63; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; font-weight: bold; }
-    #loading { display: none; text-align: center; padding: 50px; color: #e91e63; font-size: 1.2em; font-weight: bold; }
-    @media (max-width: 600px) { #content { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOGO Short Drama - DarkAaa Final Fix</title>
+    <style>
+        body { font-family: sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 0; }
+        header { background: #111; padding: 15px; text-align: center; border-bottom: 2px solid #e91e63; }
+        .tabs { display: flex; justify-content: center; gap: 8px; padding: 10px; background: #111; }
+        .tab { background: #222; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.9em; border: 1px solid #333; }
+        .tab.active { background: #e91e63; border-color: #fff; }
+        #search-container { padding: 10px; text-align: center; }
+        #search { width: 90%; max-width: 500px; padding: 12px; border-radius: 25px; border: 1px solid #444; background: #1a1a1a; color: #fff; outline: none; }
+        #content { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: #151515; border-radius: 10px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .card:hover { border-color: #e91e63; transform: translateY(-3px); }
+        .card img { width: 100%; height: 200px; object-fit: cover; background: #222; }
+        .card-info { padding: 8px; text-align: center; font-size: 0.85em; font-weight: bold; }
+        #detail-page { display: none; padding: 20px; background: #000; min-height: 100vh; position: fixed; top: 0; left: 0; width: 100%; overflow-y: auto; z-index: 999; }
+        .video-box { width: 100%; max-width: 800px; margin: 0 auto; background: #000; }
+        video { width: 100%; aspect-ratio: 16/9; border: 1px solid #333; }
+        .ep-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-top: 20px; }
+        .ep-btn { background: #222; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; border: 1px solid #444; font-size: 0.8em; }
+        .ep-btn.active { background: #e91e63; border-color: #fff; }
+        #btn-back { background: #444; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
+        #loading { text-align: center; padding: 20px; display: none; color: #e91e63; font-weight: bold; }
+        @media (max-width: 600px) { #content { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
 <body>
 
-<header><h1>GOGO SHORT DRAMA</h1></header>
+<header><h1>ZULNAD SHORT DRAMA</h1></header>
 
 <div class="tabs">
-    <div class="tab active" data-src="melolo">Melolo</div>
-    <div class="tab" data-src="dramabox">DramaBox</div>
-    <div class="tab" data-src="freereels">FreeReels</div>
-    <div class="tab" data-src="reelshort">Reelshort</div>
+    <div class="tab active" data-source="melolo">Melolo</div>
+    <div class="tab" data-source="dramabox">DramaBox</div>
+    <div class="tab" data-source="freereels">FreeReels</div>
+    <div class="tab" data-source="reelshort">Reelshort</div>
 </div>
 
-<div id="search-box">
-    <input type="text" id="search" placeholder="Cari drama atau masukan judul...">
+<div id="search-container">
+    <input type="text" id="search" placeholder="Cari drama kesukaan lo bre...">
 </div>
 
-<div id="loading">SEDANG MEMPROSES DATA...</div>
+<div id="loading">EXECUTING BYPASS...</div>
 <div id="content"></div>
 
 <div id="detail-page">
     <button id="btn-back">← KEMBALI</button>
-    <div class="player-container">
-        <video id="video-player" controls poster="https://via.placeholder.com/800x450?text=Pilih+Episode"></video>
+    <div class="video-box">
+        <video id="main-player" controls poster="https://via.placeholder.com/800x450?text=DarkAaa+Player"></video>
     </div>
     <h2 id="det-title" style="color: #e91e63;"></h2>
-    <p id="det-desc" style="color: #ccc; font-size: 0.9em;"></p>
-    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-    <h3>Daftar Episode:</h3>
-    <div class="ep-grid" id="ep-list"></div>
+    <p id="det-desc" style="font-size: 0.9em; color: #aaa;"></p>
+    <div class="ep-list" id="ep-container"></div>
 </div>
 
 <script>
     const PROXY = "https://api.tatsumi-crew.net/proxy.php?url=";
-    const API_BASE = "https://api.sonzaix.indevs.in";
-    
+    const API_HOST = "https://api.sonzaix.indevs.in";
     let currentSource = 'melolo';
     let currentDramaId = '';
 
-    // Fungsi Sakti: Pastikan semua URL dibungkus Proxy Tatsumi
-    function wrapUrl(url) {
+    // Fungsi Wajib Proxy buat SEMUA link
+    function useProxy(url) {
         if (!url) return '';
         return PROXY + encodeURIComponent(url);
     }
 
-    // Handler Tab
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentSource = tab.dataset.src;
-            loadData(`/${currentSource}/populer?page=1`);
-        });
-    });
-
-    // Search dengan Debounce
-    document.getElementById('search').addEventListener('input', debounce(function(e) {
-        const val = e.target.value;
-        if (val.length > 2) {
-            let path = `/${currentSource}/search?q=${encodeURIComponent(val)}&page=1`;
-            if (currentSource === 'reelshort') path = `/reelshort/search?query=${encodeURIComponent(val)}`;
-            loadData(path);
-        } else {
-            loadData(`/${currentSource}/populer?page=1`);
-        }
-    }, 600));
-
-    async function loadData(path) {
+    const loadData = async (path) => {
         const loading = document.getElementById('loading');
-        const container = document.getElementById('content');
-        
+        const content = document.getElementById('content');
         loading.style.display = 'block';
-        container.innerHTML = '';
+        content.innerHTML = '';
 
         try {
-            const resp = await fetch(wrapUrl(API_BASE + path));
-            const json = await resp.json();
+            const response = await fetch(useProxy(API_HOST + path));
+            const resJson = await response.json();
             
-            // Fix: Ambil data array dari berbagai struktur API
+            // FIX: Normalisasi data array untuk search & populer
             let items = [];
-            if (json.data && Array.isArray(json.data)) items = json.data;
-            else if (json.data && json.data.books) items = json.data.books;
-            
+            if (resJson.data) {
+                if (Array.isArray(resJson.data)) items = resJson.data;
+                else if (resJson.data.books) items = resJson.data.books;
+            }
+
             if (items.length === 0) {
-                container.innerHTML = '<p style="text-align:center; width:100%;">Gak ada hasil bre.</p>';
+                content.innerHTML = '<p style="text-align:center;width:100%">Data kosong atau keblokir API, bre.</p>';
             }
 
             items.forEach(item => {
-                // Normalisasi data item
+                // Handle struktur nested drama
                 const d = item.books ? item.books[0] : item;
                 const id = d.drama_id || d.bookId || d.id;
                 if (!id) return;
 
-                // Fix Gambar: Gunakan Smart Thumbnail dengan Proxy
-                const rawImg = d.cover_url || d.horizontal_url || d.thumb_url || d.cover || 'https://via.placeholder.com/150x230?text=No+Img';
+                // Fix Gambar Melolo & Other (Pakai Proxy!)
+                const imgUrl = d.horizontal_url || d.thumb_url || d.cover || d.cover_url || '';
                 
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
-                    <img src="${wrapUrl(rawImg)}" onerror="this.src='https://via.placeholder.com/150x230?text=Error'">
-                    <div class="card-title">${d.drama_name || d.title || 'Untitled'}</div>
+                    <img src="${useProxy(imgUrl)}" onerror="this.src='https://via.placeholder.com/150x200?text=No+Img'">
+                    <div class="card-info">${d.drama_name || d.title || 'Untitled'}</div>
                 `;
-                card.onclick = () => showDetail(id, d.drama_name || d.title);
-                container.appendChild(card);
+                card.onclick = () => openDetail(id, d.drama_name || d.title);
+                content.appendChild(card);
             });
         } catch (err) {
-            container.innerHTML = `<p style="color:red">Error: ${err.message}</p>`;
+            console.error(err);
+            content.innerHTML = '<p style="color:red;text-align:center">Gagal ambil data. Proxy down?</p>';
         }
         loading.style.display = 'none';
-    }
+    };
 
-    async function showDetail(id, title) {
+    async function openDetail(id, title) {
         currentDramaId = id;
-        const page = document.getElementById('detail-page');
-        const list = document.getElementById('ep-list');
         document.getElementById('loading').style.display = 'block';
+        const epContainer = document.getElementById('ep-container');
+        epContainer.innerHTML = '';
 
         try {
             let path = `/${currentSource}/detail/${id}`;
             if (currentSource === 'freereels') path = `/freereels/detail?dramaId=${id}`;
             if (currentSource === 'reelshort') path = `/reelshort/detail?bookId=${id}`;
 
-            const res = await fetch(wrapUrl(API_BASE + path));
+            const res = await fetch(useProxy(API_HOST + path));
             const json = await res.json();
             const data = json.data?.books ? json.data.books[0] : (json.data || json);
 
             document.getElementById('det-title').textContent = title;
             document.getElementById('det-desc').textContent = data.description || data.synopsis || '';
-            
-            list.innerHTML = '';
-            
-            // Episode Logic
+
+            // Render Episodes
             if (currentSource === 'melolo' && json.video_list) {
-                json.video_list.forEach(v => createEpItem(v.episode, v.video_id));
+                json.video_list.forEach(v => createEpBtn(v.episode, v.video_id));
             } else {
                 const total = data.episode_count || (data.chapterList ? data.chapterList.length : 0);
-                for(let i=1; i<=total; i++) createEpItem(i, i-1);
+                for(let i=1; i<=total; i++) createEpBtn(i, i-1);
             }
 
-            page.style.display = 'block';
-            window.scrollTo(0,0);
-        } catch (e) { alert("Detail Error!"); }
+            document.getElementById('detail-page').style.display = 'block';
+            window.scrollTo(0, 0);
+        } catch (e) { alert("Detail Gagal!"); }
         document.getElementById('loading').style.display = 'none';
     }
 
-    function createEpItem(label, val) {
-        const item = document.createElement('div');
-        item.className = 'ep-item';
-        item.textContent = `Ep ${label}`;
-        item.onclick = () => {
-            document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
+    function createEpBtn(label, val) {
+        const btn = document.createElement('div');
+        btn.className = 'ep-btn';
+        btn.textContent = `EP ${label}`;
+        btn.onclick = async () => {
+            document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             playVideo(val);
         };
-        document.getElementById('ep-list').appendChild(item);
+        document.getElementById('ep-container').appendChild(btn);
     }
 
     async function playVideo(ep) {
@@ -192,39 +165,49 @@
             if (currentSource === 'freereels') path = `/freereels/stream?dramaId=${currentDramaId}&episode=${parseInt(ep)+1}`;
             if (currentSource === 'reelshort') path = `/reelshort/stream?bookId=${currentDramaId}&episodeNumber=${parseInt(ep)+1}`;
 
-            const res = await fetch(wrapUrl(API_BASE + path));
+            const res = await fetch(useProxy(API_HOST + path));
             const json = await res.json();
-            
-            // Fix: Link Video Extraction
             const vUrl = json.data?.qualities?.[0]?.videoPath || json.data?.video_url || json.video_url || json.url;
 
             if (vUrl) {
-                const player = document.getElementById('video-player');
-                player.src = wrapUrl(vUrl); // Video juga diproxy bre!
+                const player = document.getElementById('main-player');
+                player.src = useProxy(vUrl); // Video WAJIB Proxy
                 player.play();
-                window.scrollTo(0,0);
-            } else {
-                alert("Link Video Gak Ditemukan!");
-            }
+                window.scrollTo(0, 0);
+            } else { alert("Link video tewas!"); }
         } catch (e) { alert("Stream Error!"); }
     }
 
+    // Event Listeners
+    document.querySelectorAll('.tab').forEach(t => {
+        t.onclick = () => {
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            currentSource = t.dataset.source;
+            loadData(`/${currentSource}/populer?page=1`);
+        };
+    });
+
+    document.getElementById('search').oninput = debounce((e) => {
+        const q = e.target.value;
+        if (q.length > 2) {
+            let p = `/${currentSource}/search?q=${encodeURIComponent(q)}&page=1`;
+            if (currentSource === 'reelshort') p = `/reelshort/search?query=${encodeURIComponent(q)}`;
+            loadData(p);
+        } else {
+            loadData(`/${currentSource}/populer?page=1`);
+        }
+    }, 600);
+
     document.getElementById('btn-back').onclick = () => {
         document.getElementById('detail-page').style.display = 'none';
-        const p = document.getElementById('video-player');
-        p.pause();
-        p.src = '';
+        const p = document.getElementById('main-player');
+        p.pause(); p.src = '';
     };
 
-    function debounce(func, wait) {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
-        };
-    }
+    function debounce(f, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), w); }; }
 
-    // Init
+    // Start
     loadData('/melolo/populer?page=1');
 </script>
 </body>
