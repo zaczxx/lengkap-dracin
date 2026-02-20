@@ -841,7 +841,6 @@
     page: {},
     loading: false,
     searchQuery: '',
-    // Detail state
     detailOpen: false,
     currentDrama: null,
     currentEpisodes: [],
@@ -851,13 +850,9 @@
     selectedQuality: '',
     hlsInstance: null,
     currentSubtitles: [],
-    // History
     watchHistory: JSON.parse(localStorage.getItem('sx_history') || '[]'),
   };
 
-  // ============================================
-  // SOURCE CONFIGS
-  // ============================================
   const SOURCE_CONFIG = {
     melolo: {
       label: 'Melolo', color: '#FFD700',
@@ -867,7 +862,6 @@
       parseList: (data) => (data?.data || []).flatMap(d => (d.books || []).map(b => ({ ...b, source: 'melolo' }))),
       parseDetail: (data) => data?.data || {},
       parseStream: (data) => data?.data || {},
-      getEpisodeStreamId: (ep) => ep.video_id,
     },
     dramabox: {
       label: 'Dramabox', color: '#FF1744',
@@ -877,7 +871,6 @@
       parseList: (data) => (data?.data || []).flatMap(d => (d.books || []).map(b => ({ ...b, source: 'dramabox' }))),
       parseDetail: (data) => data?.data || {},
       parseStream: (data) => data?.data || {},
-      getEpisodeStreamId: (ep, idx) => idx,
     },
     reelshort: {
       label: 'ReelShort', color: '#7C4DFF',
@@ -887,7 +880,6 @@
       parseList: (data) => (data?.data || []).flatMap(d => (d.books || []).map(b => ({ ...b, source: 'reelshort' }))),
       parseDetail: (data) => data?.data || {},
       parseStream: (data) => data?.data || {},
-      getEpisodeStreamId: (ep, idx) => idx + 1,
     },
     freereels: {
       label: 'FreeReels', color: '#F43F5E',
@@ -897,7 +889,6 @@
       parseList: (data) => (data?.data || []).flatMap(d => (d.books || []).map(b => ({ ...b, source: 'freereels' }))),
       parseDetail: (data) => data?.data || {},
       parseStream: (data) => data?.data || {},
-      getEpisodeStreamId: (ep, idx) => idx + 1,
     },
     drakor: {
       label: 'Drakor', color: '#14b8a6',
@@ -905,18 +896,12 @@
       detailUrl: (id) => `/drama/info?id=${id}`,
       streamUrl: (sid) => `/drama/stream?id=${sid}`,
       parseList: (data) => (data?.data || []).map(item => ({
-        drama_name: item.title || '',
-        drama_id: item.id || '',
-        description: '',
-        episode_count: '',
-        watch_value: item.hits || '',
-        thumb_url: item.image || '',
-        tags: [],
-        source: 'drakor'
+        drama_name: item.title || '', drama_id: item.id || '', description: '',
+        episode_count: '', watch_value: item.hits || '', thumb_url: item.image || '',
+        tags: [], source: 'drakor'
       })),
       parseDetail: (data) => data,
       parseStream: (data) => data,
-      getEpisodeStreamId: (ep) => ep.streaming_id || ep.id,
     }
   };
 
@@ -924,29 +909,10 @@
   // HELPERS
   // ============================================
   function $(id) { return document.getElementById(id); }
-
-  function fmtTime(s) {
-    if (!s || isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return m + ':' + (sec < 10 ? '0' : '') + sec;
-  }
-
-  async function apiFetch(path) {
-    const sep = path.includes('?') ? '&' : '?';
-    const resp = await fetch(API + path + sep + '_t=' + Date.now());
-    if (!resp.ok) throw new Error('API error ' + resp.status);
-    return resp.json();
-  }
-
-  function showLoader() {
-    const loader = $('gridLoader');
-    loader.innerHTML = Array.from({length: 12}, () => '<div class="skeleton"></div>').join('');
-    loader.style.display = 'grid';
-  }
-
+  function fmtTime(s) { if (!s || isNaN(s)) return '0:00'; const m = Math.floor(s/60), sec = Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; }
+  async function apiFetch(path) { const sep = path.includes('?') ? '&' : '?'; const resp = await fetch(API+path+sep+'_t='+Date.now()); if (!resp.ok) throw new Error('API error '+resp.status); return resp.json(); }
+  function showLoader() { const l = $('gridLoader'); l.innerHTML = Array.from({length:12}, ()=>'<div class="skeleton"></div>').join(''); l.style.display = 'grid'; }
   function hideLoader() { $('gridLoader').style.display = 'none'; }
-
   function saveHistory(drama, source, epIndex) {
     const entry = { id: drama.drama_id, name: drama.drama_name, thumb: drama.thumb_url || drama.image, source, epIndex, time: Date.now() };
     state.watchHistory = state.watchHistory.filter(h => !(h.id === entry.id && h.source === entry.source));
@@ -956,230 +922,56 @@
   }
 
   // ============================================
-  // RENDERING
+  // RENDERING & FETCHING
   // ============================================
   function renderDramas(dramas, append = false) {
     const grid = $('dramaGrid');
     const empty = $('emptyState');
-
     if (!append) grid.innerHTML = '';
-
-    if (!dramas.length && !append) {
-      empty.style.display = 'block';
-      return;
-    }
+    if (!dramas.length && !append) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
-
     dramas.forEach((d, i) => {
-      const card = document.createElement('div');
-      card.className = 'drama-card';
-      card.style.animationDelay = (i * 0.05) + 's';
-
-      const src = d.source || 'melolo';
-      const config = SOURCE_CONFIG[src];
-      const thumbUrl = proxyThumb(d.thumb_url || d.image || '', src);
-      const epCount = d.episode_count || '';
-
-      card.innerHTML = `
-        <img src="${thumbUrl}" alt="" loading="lazy" onerror="this.style.display='none'">
-        <div class="drama-card-badge badge-${src}">${config?.label || src}</div>
-        ${epCount ? `<div class="drama-card-ep">${epCount} Ep</div>` : ''}
-        <div class="drama-card-overlay">
-          <div class="drama-card-title">${d.drama_name || ''}</div>
-        </div>
-      `;
+      const card = document.createElement('div'); card.className = 'drama-card';
+      const src = d.source || 'melolo'; const cfg = SOURCE_CONFIG[src];
+      card.innerHTML = `<img src="${proxyThumb(d.thumb_url||d.image||'', src)}" alt="" loading="lazy"><div class="drama-card-badge badge-${src}">${cfg?.label||src}</div><div class="drama-card-overlay"><div class="drama-card-title">${d.drama_name||''}</div></div>`;
       card.onclick = () => openDetail(d, src);
       grid.appendChild(card);
     });
   }
 
-  function renderHistory() {
-    const grid = $('dramaGrid');
-    const empty = $('emptyState');
-    grid.innerHTML = '';
-
-    if (!state.watchHistory.length) {
-      empty.style.display = 'block';
-      empty.querySelector('h3').textContent = 'Belum ada riwayat';
-      empty.querySelector('p').textContent = 'Drama yang kamu tonton akan muncul di sini';
-      return;
-    }
-    empty.style.display = 'none';
-
-    state.watchHistory.forEach((h, i) => {
-      const card = document.createElement('div');
-      card.className = 'drama-card';
-      card.style.animationDelay = (i * 0.05) + 's';
-      const src = h.source || 'melolo';
-      const config = SOURCE_CONFIG[src];
-
-      card.innerHTML = `
-        <img src="${proxyThumb(h.thumb || '', src)}" alt="" loading="lazy" onerror="this.style.display='none'">
-        <div class="drama-card-badge badge-${src}">${config?.label || src}</div>
-        <div class="drama-card-ep">Ep ${(h.epIndex || 0) + 1}</div>
-        <div class="drama-card-overlay">
-          <div class="drama-card-title">${h.name || ''}</div>
-        </div>
-      `;
-      card.onclick = () => openDetail({ drama_id: h.id, drama_name: h.name, thumb_url: h.thumb }, src);
-      grid.appendChild(card);
-    });
-  }
-
-  // ============================================
-  // DATA FETCHING
-  // ============================================
   async function fetchTab(tab, page = 1) {
-    state.loading = true;
-    showLoader();
-
-    const sources = state.currentSource === 'all'
-      ? SOURCES.filter(s => SOURCE_CONFIG[s].endpoints[tab])
-      : (SOURCE_CONFIG[state.currentSource]?.endpoints[tab] ? [state.currentSource] : []);
-
-    if (!sources.length) {
-      hideLoader();
-      state.loading = false;
-      if (page === 1) renderDramas([]);
-      return;
-    }
-
+    state.loading = true; showLoader();
+    const sources = state.currentSource === 'all' ? SOURCES.filter(s => SOURCE_CONFIG[s].endpoints[tab]) : [state.currentSource];
     try {
-      const results = await Promise.allSettled(
-        sources.map(async src => {
-          const cfg = SOURCE_CONFIG[src];
-          let endpoint = cfg.endpoints[tab];
-          if (!endpoint) return [];
-          if (tab === 'search') {
-            endpoint += (endpoint.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(state.searchQuery);
-            if (src === 'reelshort') endpoint = endpoint.replace('q=', 'query=');
-          }
-          endpoint += (endpoint.includes('?') ? '&' : '?') + 'page=' + page;
-          const data = await apiFetch(endpoint);
-          return cfg.parseList(data);
-        })
-      );
-
-      const allDramas = results
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => r.value);
-
-      // Interleave sources for variety
-      const grouped = {};
-      allDramas.forEach(d => {
-        if (!grouped[d.source]) grouped[d.source] = [];
-        grouped[d.source].push(d);
-      });
-
-      const interleaved = [];
-      let maxLen = Math.max(...Object.values(grouped).map(g => g.length), 0);
-      for (let i = 0; i < maxLen; i++) {
-        for (const src of sources) {
-          if (grouped[src] && grouped[src][i]) interleaved.push(grouped[src][i]);
-        }
-      }
-
-      if (page === 1) {
-        state.dramas = interleaved;
-        renderDramas(interleaved);
-      } else {
-        state.dramas = state.dramas.concat(interleaved);
-        renderDramas(interleaved, true);
-      }
-
+      const results = await Promise.allSettled(sources.map(async src => {
+        let endpoint = SOURCE_CONFIG[src].endpoints[tab]; if (!endpoint) return [];
+        if (tab === 'search') endpoint += (endpoint.includes('?')?'&':'?') + (src==='reelshort'?'query=':'q=') + encodeURIComponent(state.searchQuery);
+        endpoint += (endpoint.includes('?')?'&':'?') + 'page=' + page;
+        const data = await apiFetch(endpoint); return SOURCE_CONFIG[src].parseList(data);
+      }));
+      const interleaved = results.filter(r => r.status === 'fulfilled').flatMap(r => r.value);
+      if (page === 1) { state.dramas = interleaved; renderDramas(interleaved); } else { state.dramas = state.dramas.concat(interleaved); renderDramas(interleaved, true); }
       $('loadMoreBtn').style.display = interleaved.length >= 5 ? 'block' : 'none';
-
-    } catch(e) {
-      console.error('Fetch error:', e);
-    }
-
-    hideLoader();
-    state.loading = false;
+    } catch(e) { console.error(e); }
+    hideLoader(); state.loading = false;
   }
 
-  // ============================================
-  // TAB / SOURCE SWITCHING
-  // ============================================
   function switchTab(tab) {
-    state.currentTab = tab;
-    state.page = {};
-
-    // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-
-    $('dramaGrid').innerHTML = '';
-    $('emptyState').style.display = 'none';
-    $('loadMoreBtn').style.display = 'none';
-
-    if (tab === 'library') {
-      renderHistory();
-      return;
-    }
-
-    if (tab === 'search') {
-      const q = $('searchInput').value.trim();
-      if (q) {
-        state.searchQuery = q;
-        fetchTab('search', 1);
-      } else {
-        $('emptyState').style.display = 'block';
-        $('emptyState').querySelector('h3').textContent = 'Cari Drama Favoritmu';
-        $('emptyState').querySelector('p').textContent = 'Ketik judul drama di kolom pencarian di atas';
-      }
-      return;
-    }
-
+    state.currentTab = tab; state.page = {};
+    document.querySelectorAll('.tab-btn, .bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (tab === 'library') { renderHistory(); return; }
     fetchTab(tab, 1);
   }
 
-  function setSource(source) {
-    state.currentSource = source;
-    updateFilterButtons();
-    switchTab(state.currentTab);
-  }
-
-  function openFilterDialog() {
-    updateFilterButtons();
-    $('filterDialogBackdrop').classList.add('open');
-  }
-
-  function closeFilterDialog() {
-    $('filterDialogBackdrop').classList.remove('open');
-  }
-
-  function selectFilter(source) {
-    setSource(source);
-    closeFilterDialog();
-  }
-
-  function updateFilterButtons() {
-    document.querySelectorAll('.filter-option-btn').forEach(btn => {
-      btn.classList.toggle('selected', btn.dataset.source === state.currentSource);
-    });
-  }
-
-  function doSearch() {
-    const q = $('searchInput').value.trim();
-    if (!q) return;
-    state.searchQuery = q;
-    switchTab('search');
-  }
-
-  function loadMore() {
-    const tab = state.currentTab;
-    if (!state.page[tab]) state.page[tab] = 1;
-    state.page[tab]++;
-    fetchTab(tab, state.page[tab]);
-  }
-
-  function goHome() {
-    closeDetail();
-    switchTab('home');
-  }
+  // ============================================
+  // BACK BUTTON HP LOGIC
+  // ============================================
+  window.addEventListener('popstate', function(event) {
+    if (state.detailOpen) { closeDetail(); }
+  });
 
   // ============================================
-  // DETAIL / PLAYER
+  // DETAIL & PLAYER
   // ============================================
   async function openDetail(drama, source) {
     const overlay = $('detailOverlay');
@@ -1187,436 +979,30 @@
     state.detailOpen = true;
     state.currentDrama = drama;
     document.body.style.overflow = 'hidden';
-    $('fabFilter').style.display = 'none';
+    history.pushState({ page: 'detail' }, '');
 
-    // Reset UI
-    $('detailTitle').textContent = drama.drama_name || '';
-    $('detailSynopsis').textContent = drama.description || 'Memuat...';
-    $('detailChips').innerHTML = '';
-    $('detailTags').innerHTML = '';
-    $('episodeList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dark-gray);">Memuat episode...</div>';
-    $('episodeCounter').textContent = '';
-    $('playerTitle').textContent = drama.drama_name || '';
     showPlayerLoading(true);
     stopPlayer();
 
     try {
       const cfg = SOURCE_CONFIG[source];
-      const detailUrl = cfg.detailUrl(drama.drama_id);
-      const data = await apiFetch(detailUrl);
+      const data = await apiFetch(cfg.detailUrl(drama.drama_id));
       const detail = cfg.parseDetail(data);
 
-      // Update info
       $('detailTitle').textContent = detail.drama_name || detail.title || drama.drama_name;
-      $('detailSynopsis').textContent = detail.description || detail.synopsis_clean || detail.introduction || '-';
-
-      // Chips
-      const chips = $('detailChips');
-      const epCount = detail.episode_count || detail.total_episode || 0;
-      chips.innerHTML = `
-        <span class="info-chip chip-primary">${epCount} Episode</span>
-        <span class="info-chip" style="background:rgba(${hexToRgb(cfg.color)},0.16);color:${cfg.color};border:1px solid rgba(${hexToRgb(cfg.color)},0.4);">${cfg.label}</span>
-      `;
-
-      // Tags
-      const tags = detail.tags || [];
-      $('detailTags').innerHTML = tags.map(t => `<span class="tag-pill">${t}</span>`).join('');
-
-      // Episode list
+      $('detailSynopsis').textContent = detail.description || detail.synopsis_clean || '-';
+      
       let episodes = [];
-      if (source === 'melolo') {
-        episodes = (detail.video_list || []).map((v, i) => ({
-          label: 'Episode ' + (v.episode || i + 1),
-          video_id: v.video_id,
-          index: i,
-          cover: v.cover
-        }));
-      } else if (source === 'dramabox') {
-        episodes = (detail.chapterList || []).map((c, i) => ({
-          label: 'Episode ' + (c.chapterIndex != null ? c.chapterIndex + 1 : i + 1),
-          chapterId: c.chapterId,
-          chapterIndex: c.chapterIndex != null ? c.chapterIndex : i,
-          index: i
-        }));
-      } else if (source === 'reelshort') {
-        episodes = (detail.video_list || []).map((v, i) => ({
-          label: v.title || 'Episode ' + (v.index || v.serialNumber || i + 1),
-          chapterId: v.chapterId,
-          index: i,
-          serialNumber: v.serialNumber || v.index || i + 1
-        }));
-      } else if (source === 'freereels') {
-        episodes = (detail.episode_list || []).map((ep, i) => ({
-          label: ep.name || 'Episode ' + (i + 1),
-          episode_id: ep.episode_id,
-          index: i
-        }));
-      } else if (source === 'drakor') {
-        episodes = (detail.data_episode || []).map((ep, i) => ({
-          label: 'Episode ' + (i + 1),
-          streaming_id: ep.id,
-          id: ep.id,
-          index: i
-        }));
-      }
+      if (source === 'melolo') episodes = (detail.video_list || []).map((v, i) => ({ label: 'Ep '+(v.episode||i+1), video_id: v.video_id, index: i }));
+      else if (source === 'dramabox') episodes = (detail.chapterList || []).map((c, i) => ({ label: 'Ep '+(i+1), chapterIndex: c.chapterIndex??i, index: i }));
+      else if (source === 'reelshort') episodes = (detail.video_list || []).map((v, i) => ({ label: 'Ep '+(i+1), serialNumber: v.serialNumber||v.index||i+1, index: i }));
+      else if (source === 'freereels') episodes = (detail.episode_list || []).map((ep, i) => ({ label: 'Ep '+(i+1), index: i }));
+      else if (source === 'drakor') episodes = (detail.data_episode || []).map((ep, i) => ({ label: 'Ep '+(i+1), streaming_id: ep.id, index: i }));
 
       state.currentEpisodes = episodes;
-      state.currentDrama = { ...drama, ...detail };
-      $('episodeCounter').textContent = `0 / ${episodes.length}`;
       renderEpisodes(episodes, source);
-
-      // Auto-play first episode
-      if (episodes.length > 0) {
-        playEpisode(0, source);
-      } else {
-        showPlayerLoading(false);
-      }
-
-    } catch(e) {
-      console.error('Detail error:', e);
-      $('detailSynopsis').textContent = 'Gagal memuat detail: ' + e.message;
-      showPlayerLoading(false);
-    }
-  }
-
-  function renderEpisodes(episodes, source) {
-    const list = $('episodeList');
-    list.innerHTML = '';
-
-    episodes.forEach((ep, i) => {
-      const item = document.createElement('div');
-      item.className = 'episode-item';
-      item.dataset.index = i;
-      item.innerHTML = `
-        <span class="ep-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </span>
-        <span class="ep-label">${ep.label}</span>
-      `;
-      item.onclick = () => playEpisode(i, source);
-      list.appendChild(item);
-    });
-  }
-
-  async function playEpisode(index, source) {
-    const ep = state.currentEpisodes[index];
-    if (!ep) return;
-
-    state.currentEpIndex = index;
-    $('episodeCounter').textContent = `${index + 1} / ${state.currentEpisodes.length}`;
-    $('playerTitle').textContent = (state.currentDrama.drama_name || '') + ' - ' + ep.label;
-
-    // Highlight active episode
-    document.querySelectorAll('.episode-item').forEach(el => {
-      el.classList.toggle('active', parseInt(el.dataset.index) === index);
-    });
-
-    // Scroll to active episode
-    const activeEl = document.querySelector('.episode-item.active');
-    if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    showPlayerLoading(true);
-    stopPlayer();
-
-    try {
-      const cfg = SOURCE_CONFIG[source];
-      let streamUrl;
-      state.currentSubtitles = [];
-
-      if (source === 'melolo') {
-        streamUrl = cfg.streamUrl(ep.video_id);
-      } else if (source === 'dramabox') {
-        streamUrl = cfg.streamUrl(state.currentDrama.drama_id, ep.chapterIndex);
-      } else if (source === 'reelshort') {
-        streamUrl = cfg.streamUrl(state.currentDrama.drama_id, ep.serialNumber || index + 1);
-      } else if (source === 'freereels') {
-        streamUrl = cfg.streamUrl(state.currentDrama.drama_id, index + 1);
-      } else if (source === 'drakor') {
-        streamUrl = cfg.streamUrl(ep.streaming_id || ep.id);
-      }
-
-      const data = await apiFetch(streamUrl);
-      const streamData = cfg.parseStream(data);
-      state.currentStreamData = streamData;
-
-      // Extract video URL based on source
-      let videoUrl = '';
-      let qualities = [];
-
-      if (source === 'melolo') {
-        // Melolo: qualities = [{ label, width, height, bitrate, codec, url }]
-        // label sudah berisi definition dari API (misal "360p", "480p", "720p")
-        qualities = (streamData.qualities || []).map(q => ({
-          label: q.label || (q.height ? q.height + 'p' : 'default'),
-          url: q.url || '',
-          height: q.height || 0
-        }));
-        // Urutkan dari resolusi terendah ke tertinggi
-        qualities.sort((a, b) => a.height - b.height);
-        if (qualities.length) {
-          const preferred = qualities.find(q => q.height === 720) 
-            || qualities.find(q => q.label.includes('720')) 
-            || qualities[qualities.length - 1];
-          videoUrl = preferred.url;
-          state.selectedQuality = preferred.label;
-        }
-      } else if (source === 'dramabox') {
-        // Dramabox returns mp4_url or videoUrl in data
-        videoUrl = streamData.mp4_url || streamData.videoUrl || streamData.video_url || '';
-        if (streamData.definition_list) {
-          qualities = streamData.definition_list.map(d => ({
-            label: d.definition || d.code || 'default',
-            url: d.url || ''
-          }));
-          if (qualities.length) {
-            const preferred = qualities.find(q => q.label.includes('720')) || qualities[0];
-            videoUrl = preferred.url || videoUrl;
-            state.selectedQuality = preferred.label;
-          }
-        }
-      } else if (source === 'reelshort') {
-        // ReelShort videoList: [{ playUrl, encode, dpi, bitrate }]
-        const videoList = streamData.videoList || [];
-        qualities = videoList
-          .filter(v => v.playUrl && v.dpi > 0)
-          .map(v => ({
-            label: v.dpi + 'p' + (v.encode ? ' ' + v.encode : ''),
-            url: v.playUrl,
-            dpi: v.dpi || 0,
-            encode: v.encode || ''
-          }));
-        // Tambahkan entry dpi:0 sebagai "Auto" jika ada
-        const autoEntry = videoList.find(v => v.playUrl && v.dpi === 0);
-        if (autoEntry) qualities.push({ label: 'Auto', url: autoEntry.playUrl, dpi: 0, encode: autoEntry.encode || '' });
-        if (qualities.length) {
-          // Prefer H264 720p > H264 lainnya > 720p apapun > pertama
-          const preferred = qualities.find(q => q.dpi === 720 && q.encode === 'H264')
-            || qualities.find(q => q.encode === 'H264')
-            || qualities.find(q => q.dpi === 720)
-            || qualities[0];
-          videoUrl = preferred.url;
-          state.selectedQuality = preferred.label;
-        }
-      } else if (source === 'freereels') {
-        // FreeReels: { video_url, m3u8_url, h264_m3u8, h265_m3u8, subtitles }
-        if (streamData.h264_m3u8) qualities.push({ label: 'H264', url: streamData.h264_m3u8 });
-        if (streamData.h265_m3u8) qualities.push({ label: 'H265', url: streamData.h265_m3u8 });
-        // Fallback ke video_url jika tidak ada h264/h265
-        if (!qualities.length && streamData.video_url) qualities.push({ label: 'Default', url: streamData.video_url });
-        // Pilih H264 sebagai default (lebih kompatibel)
-        const preferred = qualities.find(q => q.label === 'H264') || qualities[0];
-        if (preferred) {
-          videoUrl = preferred.url;
-          state.selectedQuality = preferred.label;
-        } else {
-          videoUrl = streamData.video_url || streamData.m3u8_url || '';
-          state.selectedQuality = 'auto';
-        }
-        // Muat subtitle jika tersedia
-        if (streamData.subtitles && streamData.subtitles.length) {
-          state.currentSubtitles = streamData.subtitles;
-        }
-      } else if (source === 'drakor') {
-        // Drakor data_stream
-        const streams = streamData.data_stream || data?.data_stream || [];
-        if (streams.length) {
-          const s = streams[0];
-          if (s['720p']) { qualities.push({ label: '720p', url: s['720p'] }); videoUrl = s['720p']; }
-          if (s['480p']) { qualities.push({ label: '480p', url: s['480p'] }); if (!videoUrl) videoUrl = s['480p']; }
-          if (s['360p']) { qualities.push({ label: '360p', url: s['360p'] }); if (!videoUrl) videoUrl = s['360p']; }
-          state.selectedQuality = qualities.length ? qualities[0].label : 'auto';
-        }
-      }
-
-      state.currentQualities = qualities;
-      renderQualityOptions(qualities);
-
-      if (videoUrl) {
-        loadVideo(videoUrl);
-        // Load subtitles if available
-        loadSubtitles();
-        saveHistory(state.currentDrama, source, index);
-      } else {
-        showPlayerLoading(false);
-        alert('Video tidak tersedia untuk episode ini');
-      }
-
-    } catch(e) {
-      console.error('Stream error:', e);
-      showPlayerLoading(false);
-      alert('Gagal memuat stream: ' + e.message);
-    }
-  }
-
-  // ============================================
-  // VIDEO PLAYER
-  // ============================================
-  function loadVideo(url) {
-    const video = $('videoPlayer');
-
-    if (state.hlsInstance) {
-      state.hlsInstance.destroy();
-      state.hlsInstance = null;
-    }
-
-    if (url.includes('.m3u8')) {
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          maxBufferLength: 30,
-          maxMaxBufferLength: 60,
-          startLevel: -1
-        });
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(() => {});
-          showPlayerLoading(false);
-        });
-        hls.on(Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            console.error('HLS fatal error:', data);
-            showPlayerLoading(false);
-          }
-        });
-        state.hlsInstance = hls;
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-        video.addEventListener('loadedmetadata', () => {
-          video.play().catch(() => {});
-          showPlayerLoading(false);
-        }, { once: true });
-      }
-    } else {
-      video.src = url;
-      video.addEventListener('loadeddata', () => {
-        video.play().catch(() => {});
-        showPlayerLoading(false);
-      }, { once: true });
-      video.addEventListener('error', () => {
-        showPlayerLoading(false);
-        console.error('Video load error');
-      }, { once: true });
-    }
-  }
-
-  function stopPlayer() {
-    const video = $('videoPlayer');
-    video.pause();
-    video.removeAttribute('src');
-    // Remove subtitle tracks
-    Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
-    state.currentSubtitles = [];
-    video.load();
-    if (state.hlsInstance) {
-      state.hlsInstance.destroy();
-      state.hlsInstance = null;
-    }
-  }
-
-  function loadSubtitles() {
-    const video = $('videoPlayer');
-    // Remove existing tracks
-    Array.from(video.querySelectorAll('track')).forEach(t => t.remove());
-    if (!state.currentSubtitles || !state.currentSubtitles.length) return;
-    state.currentSubtitles.forEach((sub, i) => {
-      const track = document.createElement('track');
-      track.kind = 'subtitles';
-      track.label = sub.display_name || sub.language || 'Sub ' + (i + 1);
-      track.srclang = (sub.language || '').split('-')[0] || 'id';
-      track.src = sub.url || '';
-      if (sub.language === 'id-ID' || sub.type === 'original') track.default = true;
-      video.appendChild(track);
-    });
-  }
-
-  function togglePlay() {
-    const video = $('videoPlayer');
-    if (video.paused) video.play().catch(() => {});
-    else video.pause();
-  }
-
-  function seekVideo(val) {
-    const video = $('videoPlayer');
-    if (video.duration) {
-      video.currentTime = (val / 100) * video.duration;
-    }
-  }
-
-  function showPlayerLoading(show) {
-    $('playerLoading').style.display = show ? 'block' : 'none';
-  }
-
-  function toggleFullscreen() {
-    const container = $('playerContainer');
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      container.requestFullscreen().catch(() => {});
-    }
-  }
-
-  // Quality menu
-  function renderQualityOptions(qualities) {
-    const dropdown = $('qualityDropdown');
-    const btn = $('qualityBtn');
-    if (!qualities.length) {
-      btn.textContent = 'Auto';
-      dropdown.innerHTML = '';
-      return;
-    }
-    btn.textContent = state.selectedQuality || qualities[0]?.label || 'Auto';
-    dropdown.innerHTML = qualities.map(q =>
-      `<button class="quality-option ${q.label === state.selectedQuality ? 'active' : ''}" onclick="selectQuality('${q.label}','${q.url}')">${q.label}</button>`
-    ).join('');
-  }
-
-  function toggleQualityMenu() {
-    $('qualityDropdown').classList.toggle('open');
-  }
-
-  function selectQuality(label, url) {
-    state.selectedQuality = label;
-    $('qualityBtn').textContent = label;
-    $('qualityDropdown').classList.remove('open');
-    document.querySelectorAll('.quality-option').forEach(o => o.classList.toggle('active', o.textContent === label));
-    if (url) loadVideo(url);
-  }
-
-  // Player events
-  const video = $('videoPlayer');
-
-  video.addEventListener('timeupdate', () => {
-    const t = video.currentTime;
-    const d = video.duration || 0;
-    $('timeDisplay').textContent = fmtTime(t) + ' / ' + fmtTime(d);
-    if (d) $('seekBar').value = (t / d) * 100;
-  });
-
-  video.addEventListener('play', () => {
-    $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-  });
-
-  video.addEventListener('pause', () => {
-    $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
-  });
-
-  video.addEventListener('waiting', () => showPlayerLoading(true));
-  video.addEventListener('canplay', () => showPlayerLoading(false));
-
-  video.addEventListener('ended', () => {
-    // Auto next episode
-    if (state.currentEpIndex < state.currentEpisodes.length - 1) {
-      const nextIdx = state.currentEpIndex + 1;
-      const source = state.currentDrama?.source || detectSource();
-      playEpisode(nextIdx, source);
-    }
-  });
-
-  function detectSource() {
-    const badge = document.querySelector('.detail-chips .info-chip:nth-child(2)');
-    if (!badge) return 'melolo';
-    const text = badge.textContent.toLowerCase().trim();
-    return SOURCES.find(s => SOURCE_CONFIG[s].label.toLowerCase() === text) || 'melolo';
+      if (episodes.length > 0) playEpisode(0, source);
+    } catch(e) { console.error(e); }
   }
 
   function closeDetail() {
@@ -1627,60 +1013,164 @@
     $('fabFilter').style.display = '';
   }
 
-  // Close quality dropdown on outside click
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('#qualityBtn') && !e.target.closest('#qualityDropdown')) {
-      $('qualityDropdown').classList.remove('open');
-    }
-  });
+  document.querySelector('.player-back-btn').onclick = () => { if (state.detailOpen) history.back(); };
 
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (state.detailOpen) {
-      const video = $('videoPlayer');
-      switch(e.key) {
-        case 'Escape': closeDetail(); break;
-        case ' ':
-        case 'k': e.preventDefault(); togglePlay(); break;
-        case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 5); break;
-        case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(video.duration || 0, video.currentTime + 5); break;
-        case 'f': toggleFullscreen(); break;
-        case 'n':
-          if (state.currentEpIndex < state.currentEpisodes.length - 1) {
-            playEpisode(state.currentEpIndex + 1, detectSource());
-          }
-          break;
-        case 'p':
-          if (state.currentEpIndex > 0) {
-            playEpisode(state.currentEpIndex - 1, detectSource());
-          }
-          break;
+  function renderEpisodes(episodes, source) {
+    const list = $('episodeList'); list.innerHTML = '';
+    episodes.forEach((ep, i) => {
+      const item = document.createElement('div'); item.className = 'episode-item';
+      item.innerHTML = `<span class="ep-label">${ep.label}</span>`;
+      item.onclick = () => playEpisode(i, source);
+      list.appendChild(item);
+    });
+  }
+
+  async function playEpisode(index, source) {
+    const ep = state.currentEpisodes[index]; if (!ep) return;
+    state.currentEpIndex = index;
+    document.querySelectorAll('.episode-item').forEach((el, i) => el.classList.toggle('active', i === index));
+    
+    // FIX: Tampilkan loading setiap ganti episode
+    showPlayerLoading(true); 
+    stopPlayer();
+
+    try {
+      const cfg = SOURCE_CONFIG[source];
+      let streamUrl = "";
+      if (source === 'melolo') streamUrl = cfg.streamUrl(ep.video_id);
+      else if (source === 'dramabox') streamUrl = cfg.streamUrl(state.currentDrama.drama_id, ep.chapterIndex);
+      else if (source === 'reelshort') streamUrl = cfg.streamUrl(state.currentDrama.drama_id, ep.serialNumber);
+      else if (source === 'freereels') streamUrl = cfg.streamUrl(state.currentDrama.drama_id, index+1);
+      else if (source === 'drakor') streamUrl = cfg.streamUrl(ep.streaming_id);
+
+      const data = await apiFetch(streamUrl);
+      const streamData = cfg.parseStream(data);
+      
+      let videoUrl = "";
+      let qualities = [];
+      if (source === 'melolo') {
+        qualities = (streamData.qualities || []).map(q => ({ label: q.label, url: q.url }));
+        videoUrl = qualities[qualities.length-1]?.url;
+      } else if (source === 'dramabox') {
+        videoUrl = streamData.mp4_url || streamData.videoUrl;
+        if (streamData.definition_list) qualities = streamData.definition_list.map(d=>({label: d.definition, url: d.url}));
+      } else if (source === 'freereels') {
+        videoUrl = streamData.h264_m3u8 || streamData.video_url;
+        state.currentSubtitles = streamData.subtitles || [];
+      } else {
+        videoUrl = streamData.video_url || streamData.playUrl || (streamData.data_stream?.[0]?.['720p']);
       }
+
+      state.currentQualities = qualities;
+      renderQualityOptions(qualities);
+      if (videoUrl) { 
+        loadVideo(videoUrl); 
+        loadSubtitles(); 
+        saveHistory(state.currentDrama, source, index); 
+      }
+    } catch(e) { console.error(e); showPlayerLoading(false); }
+  }
+
+  function loadVideo(url) {
+    const video = $('videoPlayer');
+    if (state.hlsInstance) state.hlsInstance.destroy();
+    
+    if (url.includes('.m3u8')) {
+      if (Hls.isSupported()) {
+        state.hlsInstance = new Hls(); 
+        state.hlsInstance.loadSource(url);
+        state.hlsInstance.attachMedia(video);
+        state.hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+           video.play().catch(()=>{});
+           showPlayerLoading(false); // Sembunyikan loading pas siap
+        });
+      } else { 
+        video.src = url; 
+        video.play().catch(()=>{}); 
+      }
+    } else { 
+      video.src = url; 
+      video.play().catch(()=>{}); 
     }
+  }
+
+  function stopPlayer() { 
+    const v = $('videoPlayer'); v.pause(); v.src = ""; v.load(); 
+    if (state.hlsInstance) { state.hlsInstance.destroy(); state.hlsInstance = null; }
+  }
+
+  function loadSubtitles() {
+    const v = $('videoPlayer'); Array.from(v.querySelectorAll('track')).forEach(t => t.remove());
+    state.currentSubtitles.forEach(sub => {
+      const t = document.createElement('track'); t.kind = 'subtitles'; t.label = sub.display_name; t.src = sub.url;
+      if (sub.language === 'id-ID') t.default = true; v.appendChild(t);
+    });
+  }
+
+  // ============================================
+  // VIDEO EVENTS & LOADING BUG FIX
+  // ============================================
+  const v = $('videoPlayer');
+
+  // FIX: Sembunyikan loading jika video benar-benar mulai bermain
+  v.addEventListener('playing', () => {
+    showPlayerLoading(false);
+  });
+
+  // FIX: Tampilkan loading jika video buffering di tengah-tengah
+  v.addEventListener('waiting', () => {
+    showPlayerLoading(true);
+  });
+
+  // FIX: Update UI Icon Play/Pause
+  v.addEventListener('play', () => {
+    $('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    showPlayerLoading(false); // Pastikan loading hilang pas play
+  });
+  v.addEventListener('pause', () => {
+    $('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+  });
+
+  v.addEventListener('timeupdate', () => {
+    const t = v.currentTime, d = v.duration || 0;
+    $('timeDisplay').textContent = fmtTime(t) + ' / ' + fmtTime(d);
+    if (d) $('seekBar').value = (t/d)*100;
+  });
+
+  v.addEventListener('ended', () => {
+    if (state.currentEpIndex < state.currentEpisodes.length - 1) playEpisode(state.currentEpIndex + 1, state.currentDrama.source);
   });
 
   // ============================================
-  // HEX TO RGB HELPER
+  // UI CONTROLS
   // ============================================
-  function hexToRgb(hex) {
-    const r = parseInt(hex.slice(1,3), 16);
-    const g = parseInt(hex.slice(3,5), 16);
-    const b = parseInt(hex.slice(5,7), 16);
-    return r + ',' + g + ',' + b;
+  function togglePlay() { v.paused ? v.play() : v.pause(); }
+  function seekVideo(val) { if (v.duration) v.currentTime = (val/100)*v.duration; }
+  function showPlayerLoading(s) { 
+     const loader = $('playerLoading');
+     if(loader) loader.style.display = s ? 'flex' : 'none'; 
   }
+  function toggleFullscreen() { const c = $('playerContainer'); if (!document.fullscreenElement) c.requestFullscreen(); else document.exitFullscreen(); }
 
-  // Proxy thumbnail melalui wsrv.nl (untuk Melolo yang pakai HEIC)
-  function proxyThumb(url, source) {
-    if (!url) return '';
-    if (source === 'melolo') {
-      return 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&output=webp&w=400&q=80';
-    }
-    return url;
+  function renderQualityOptions(qs) {
+    const d = $('qualityDropdown'); const b = $('qualityBtn');
+    if (!qs || !qs.length) { b.style.display='none'; return; }
+    b.style.display='block';
+    d.innerHTML = qs.map(q => `<button class="quality-option" onclick="selectQuality('${q.label}','${q.url}')">${q.label}</button>`).join('');
   }
+  function selectQuality(l, u) { $('qualityBtn').textContent = l; $('qualityDropdown').classList.remove('open'); loadVideo(u); }
+  function toggleQualityMenu() { $('qualityDropdown').classList.toggle('open'); }
 
-  // ============================================
-  // INIT
-  // ============================================
+  document.addEventListener('keydown', (e) => {
+    if (!state.detailOpen) return;
+    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    if (e.key === 'f') toggleFullscreen();
+    if (e.key === 'Escape') history.back();
+  });
+
+  function hexToRgb(h) { const r=parseInt(h.slice(1,3),16), g=parseInt(h.slice(3,5),16), b=parseInt(h.slice(5,7),16); return `${r},${g},${b}`; }
+  function proxyThumb(u, s) { return (s==='melolo'&&u)?'https://wsrv.nl/?url='+encodeURIComponent(u)+'&output=webp&w=400':u; }
+
   switchTab('home');
 </script>
 
