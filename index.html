@@ -3,35 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GOGO Short Drama - Nonton Melolo, DramaBox, dll</title>
+  <title>GOGO Short Drama - DarkAaa Edition</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #fff; margin: 0; padding: 0; }
-    header { background: #222; padding: 15px; text-align: center; }
-    h1 { margin: 0; font-size: 1.8em; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0a; color: #eee; margin: 0; padding: 0; }
+    header { background: #1a1a1a; padding: 20px; text-align: center; border-bottom: 2px solid #e91e63; }
+    h1 { margin: 0; font-size: 1.8em; color: #e91e63; text-transform: uppercase; letter-spacing: 2px; }
     .tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
-    .tab { background: #333; padding: 10px 18px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-    .tab.active { background: #e91e63; }
-    #search { width: 80%; max-width: 500px; padding: 12px; margin: 10px auto; display: block; border: none; border-radius: 25px; font-size: 1em; }
-    #content { padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-    .card { background: #222; border-radius: 10px; overflow: hidden; cursor: pointer; text-align: center; }
-    .card img { width: 100%; height: 220px; object-fit: cover; }
-    .card p { margin: 8px; font-size: 0.9em; }
-    .card .views { color: #aaa; font-size: 0.8em; }
-    #detail { display: none; padding: 20px; background: #000; min-height: 100vh; }
-    #detail h2 { margin-top: 0; }
-    #episode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
-    .ep-btn { background: #444; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; }
+    .tab { background: #222; padding: 10px 20px; border-radius: 5px; cursor: pointer; transition: 0.3s; border: 1px solid #333; }
+    .tab.active { background: #e91e63; color: #fff; border-color: #f06292; }
+    #search { width: 85%; max-width: 600px; padding: 15px; margin: 10px auto; display: block; border: none; border-radius: 8px; font-size: 1em; background: #222; color: #fff; outline: none; border: 1px solid #444; }
+    #search:focus { border-color: #e91e63; }
+    #content { padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+    .card { background: #1a1a1a; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.3s; border: 1px solid #222; position: relative; }
+    .card:hover { transform: translateY(-5px); border-color: #e91e63; }
+    .card img { width: 100%; height: 240px; object-fit: cover; background: #222; }
+    .card-info { padding: 10px; text-align: left; }
+    .card p { margin: 5px 0; font-size: 0.9em; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card .views { color: #888; font-size: 0.75em; }
+    #detail { display: none; padding: 20px; background: #000; min-height: 100vh; animation: fadeIn 0.5s; }
+    #episode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin: 20px 0; max-height: 300px; overflow-y: auto; padding: 10px; background: #111; border-radius: 8px; }
+    .ep-btn { background: #333; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; font-size: 0.85em; transition: 0.2s; }
+    .ep-btn:hover { background: #555; }
     .ep-btn.active { background: #e91e63; }
-    #player { width: 100%; max-width: 800px; margin: 20px auto; height: 450px; }
-    #back { background: #e91e63; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
-    #loading { text-align: center; padding: 20px; display: none; color: #fff; }
-    @media (max-width: 600px) { #content { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); } #player { height: 300px; } }
+    #player-container { width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(233, 30, 99, 0.3); }
+    #player { width: 100%; aspect-ratio: 16/9; display: block; }
+    #back { background: #444; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+    #back:hover { background: #e91e63; }
+    #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #e91e63; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 600px) { #content { grid-template-columns: repeat(2, 1fr); gap: 10px; } .card img { height: 200px; } }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>GOGO Short Drama</h1>
+  <h1>GOGO SHORT DRAMA</h1>
 </header>
 
 <div class="tabs">
@@ -41,25 +47,29 @@
   <div class="tab" data-source="reelshort">Reelshort</div>
 </div>
 
-<input type="text" id="search" placeholder="Cari drama... (contoh: cinta, love, balas dendam)" />
+<input type="text" id="search" placeholder="Cari drama kesukaan lo di sini..." />
 
+<div id="loading">SEDANG MENYIAPKAN DATA...</div>
 <div id="content"></div>
-<div id="loading">Memuat... Sabar ya boss</div>
 
 <div id="detail">
-  <button id="back">← Kembali</button>
-  <h2 id="drama-title"></h2>
-  <p id="drama-desc"></p>
+  <button id="back">← KEMBALI</button>
+  <div id="player-container">
+    <video id="player" controls poster="https://via.placeholder.com/900x500?text=Pilih+Episode"></video>
+  </div>
+  <h2 id="drama-title" style="color:#e91e63; margin-top:20px;"></h2>
+  <p id="drama-desc" style="color:#bbb; line-height:1.6;"></p>
+  <h3 style="border-left: 4px solid #e91e63; padding-left: 10px;">Daftar Episode</h3>
   <div id="episode-list"></div>
-  <video id="player" controls></video>
 </div>
 
 <script>
-  const proxy = 'https://api.tatsumi-crew.net/proxy.php?url=';
+  // Menggunakan API & Proxy dari memori tersimpan
+  const PROXY = "https://prox.zulnad.workers.dev/?url=";
+  const BASE_API = "https://api.sonzaix.indevs.in";
 
   let currentSource = 'melolo';
   let currentPage = 1;
-  let currentSearch = '';
   let currentDramaId = '';
 
   const tabs = document.querySelectorAll('.tab');
@@ -81,11 +91,10 @@
   });
 
   searchInput.addEventListener('input', debounce(() => {
-    currentSearch = searchInput.value.trim();
-    currentPage = 1;
-    if (currentSearch.length > 1) loadSearch();
+    const q = searchInput.value.trim();
+    if (q.length > 2) loadSearch(q);
     else loadPopular();
-  }, 500));
+  }, 700));
 
   backBtn.addEventListener('click', () => {
     detail.style.display = 'none';
@@ -94,184 +103,155 @@
     player.src = '';
   });
 
+  async function fetchData(url) {
+    try {
+      const response = await fetch(PROXY + encodeURIComponent(url));
+      return await response.json();
+    } catch (e) {
+      console.error("Fetch Error:", e);
+      return null;
+    }
+  }
+
   async function loadPopular() {
-    loading.style.display = 'block';
-    content.innerHTML = '';
-    let url = '';
-    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/populer?page=${currentPage}`;
-    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/populer?page=${currentPage}`;
-    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/populer?page=${currentPage}`;
-    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/populer?page=${currentPage}`;
-
-    try {
-      const proxied = proxy + encodeURIComponent(url);
-      const res = await fetch(proxied);
-      if (!res.ok) throw new Error(`Proxy error ${res.status}`);
-      const json = await res.json();
-      if (json.message !== 'success') throw new Error('API error');
+    showLoading(true);
+    const url = `${BASE_API}/${currentSource}/populer?page=${currentPage}`;
+    const json = await fetchData(url);
+    
+    if (json && json.message === 'success') {
       renderList(json.data || []);
-    } catch (e) {
-      content.innerHTML = `<p style="text-align:center;color:red;">Gagal load: ${e.message}</p>`;
-      console.error('Popular error:', e);
-    } finally {
-      loading.style.display = 'none';
+    } else {
+      content.innerHTML = `<p style="text-align:center;color:red;">Gagal mengambil data populer.</p>`;
     }
+    showLoading(false);
   }
 
-  async function loadSearch() {
-    loading.style.display = 'block';
-    content.innerHTML = '';
-    let url = '';
-    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/search?q=\( {encodeURIComponent(currentSearch)}&result=10&page= \){currentPage}`;
-    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/search?q=\( {encodeURIComponent(currentSearch)}&result=10&page= \){currentPage}`;
-    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/search?q=\( {encodeURIComponent(currentSearch)}&page= \){currentPage}`;
-    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/search?query=\( {encodeURIComponent(currentSearch)}&page= \){currentPage}`;
-
-    try {
-      const proxied = proxy + encodeURIComponent(url);
-      const res = await fetch(proxied);
-      if (!res.ok) throw new Error(`Proxy error ${res.status}`);
-      const json = await res.json();
-      if (json.message !== 'success') throw new Error('API error');
+  async function loadSearch(query) {
+    showLoading(true);
+    let url = `${BASE_API}/${currentSource}/search?q=${encodeURIComponent(query)}&page=${currentPage}`;
+    if (currentSource === 'reelshort') url = `${BASE_API}/reelshort/search?query=${encodeURIComponent(query)}&page=${currentPage}`;
+    
+    const json = await fetchData(url);
+    if (json && json.message === 'success') {
       renderList(json.data || []);
-    } catch (e) {
-      content.innerHTML = `<p style="text-align:center;color:red;">Gagal cari: ${e.message}</p>`;
-      console.error('Search error:', e);
-    } finally {
-      loading.style.display = 'none';
     }
+    showLoading(false);
   }
 
-  function renderList(dataArray) {
+  function renderList(data) {
     content.innerHTML = '';
-    let books = [];
-    dataArray.forEach(item => {
-      if (item.books && Array.isArray(item.books)) books.push(...item.books);
-    });
+    // Normalisasi data karena struktur API berbeda-beda
+    let items = [];
+    if (Array.isArray(data)) {
+        items = data;
+    } else if (data.books) {
+        items = data.books;
+    }
 
-    if (books.length === 0) {
-      content.innerHTML = '<p style="text-align:center;">Tidak ada hasil</p>';
+    if (items.length === 0) {
+      content.innerHTML = '<p style="text-align:center;">Drama tidak ditemukan, coba kata kunci lain.</p>';
       return;
     }
 
-    books.forEach(book => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const thumb = book.thumb_url || 'https://via.placeholder.com/150?text=No+Poster';
-      card.innerHTML = `
-        <img src="\( {thumb}" alt=" \){book.drama_name || 'Drama'}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
-        <p>${book.drama_name || 'Judul Tidak Tersedia'}</p>
-        <p class="views">${book.watch_value || 'N/A'} views • ${book.episode_count || '?'} eps</p>
-      `;
-      card.onclick = () => loadDetail(book.drama_id, book.drama_name);
-      content.appendChild(card);
+    items.forEach(item => {
+      // Handle nested books
+      const dramas = item.books ? item.books : [item];
+      
+      dramas.forEach(drama => {
+        const id = drama.drama_id || drama.bookId || drama.id;
+        if(!id) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        const imgUrl = drama.thumb_url || drama.cover || drama.horizontal_url || 'https://via.placeholder.com/200x300?text=No+Image';
+        
+        card.innerHTML = `
+          <img src="${imgUrl}" alt="${drama.drama_name}" loading="lazy">
+          <div class="card-info">
+            <p>${drama.drama_name || drama.title || 'Unknown Drama'}</p>
+            <div class="views">${drama.watch_value || drama.score || '0'} views • ${drama.episode_count || '?'} Eps</div>
+          </div>
+        `;
+        card.onclick = () => loadDetail(id, drama.drama_name || drama.title);
+        content.appendChild(card);
+      });
     });
   }
 
   async function loadDetail(id, title) {
     currentDramaId = id;
-    loading.style.display = 'block';
-    detail.style.display = 'none';
+    showLoading(true);
+    
+    let url = `${BASE_API}/${currentSource}/detail/${id}`;
+    if (currentSource === 'freereels') url = `${BASE_API}/freereels/detail?dramaId=${id}`;
+    if (currentSource === 'reelshort') url = `${BASE_API}/reelshort/detail?bookId=${id}`;
 
-    let url = '';
-    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/detail/${id}`;
-    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/detail/${id}`;
-    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/detail?dramaId=${id}`;
-    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/detail?bookId=${id}`;
+    const json = await fetchData(url);
+    if (!json) return showLoading(false);
+
+    let d = json.data || json;
+    if (d.books && d.books[0]) d = d.books[0];
+
+    document.getElementById('drama-title').textContent = title || d.drama_name;
+    document.getElementById('drama-desc').textContent = d.description || d.synopsis || 'No description.';
+    
+    const epList = document.getElementById('episode-list');
+    epList.innerHTML = '';
+
+    // Logika Episode
+    if (currentSource === 'melolo' && json.video_list) {
+      json.video_list.forEach(ev => {
+        createEpBtn(ev.episode, ev.video_id, true);
+      });
+    } else {
+      const count = d.episode_count || (d.chapterList ? d.chapterList.length : 0);
+      for (let i = 1; i <= count; i++) {
+        createEpBtn(i, i - 1, false);
+      }
+    }
+
+    content.style.display = 'none';
+    detail.style.display = 'block';
+    window.scrollTo(0,0);
+    showLoading(false);
+  }
+
+  function createEpBtn(label, val, isMelolo) {
+    const btn = document.createElement('div');
+    btn.className = 'ep-btn';
+    btn.textContent = `EP ${label}`;
+    btn.onclick = () => {
+        document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        playEpisode(val);
+    };
+    document.getElementById('episode-list').appendChild(btn);
+  }
+
+  async function playEpisode(ep) {
+    let url = `${BASE_API}/${currentSource}/stream/${ep}`;
+    if (currentSource === 'dramabox') url = `${BASE_API}/dramabox/stream?dramaId=${currentDramaId}&episodeIndex=${ep}`;
+    if (currentSource === 'freereels') url = `${BASE_API}/freereels/stream?dramaId=${currentDramaId}&episode=${parseInt(ep)+1}`;
+    if (currentSource === 'reelshort') url = `${BASE_API}/reelshort/stream?bookId=${currentDramaId}&episodeNumber=${parseInt(ep)+1}`;
 
     try {
-      const proxied = proxy + encodeURIComponent(url);
-      const res = await fetch(proxied);
-      if (!res.ok) throw new Error(`Proxy error ${res.status}`);
-      const json = await res.json();
-      if (json.message !== 'success') throw new Error('Detail error');
-
-      let detailData = json.data || json;
-      if (detailData.books && detailData.books[0]) detailData = detailData.books[0];
-
-      document.getElementById('drama-title').textContent = title || detailData.drama_name || 'Judul Drama';
-      document.getElementById('drama-desc').textContent = detailData.description || detailData.synopsis || 'Sinopsis tidak tersedia.';
-
-      const epList = document.getElementById('episode-list');
-      epList.innerHTML = '';
-
-      let episodes = [];
-
-      if (currentSource === 'melolo' && json.video_list && Array.isArray(json.video_list)) {
-        episodes = json.video_list;
-        episodes.forEach(ep => {
-          const btn = document.createElement('div');
-          btn.className = 'ep-btn';
-          btn.textContent = `Ep ${ep.episode}`;
-          btn.onclick = () => playEpisode(ep.video_id);
-          epList.appendChild(btn);
-        });
-      } else if (currentSource === 'dramabox' && detailData.chapterList && Array.isArray(detailData.chapterList)) {
-        episodes = detailData.chapterList;
-        episodes.forEach(ch => {
-          const btn = document.createElement('div');
-          btn.className = 'ep-btn';
-          btn.textContent = `Ep ${ch.chapterIndex + 1}`;
-          btn.onclick = () => playEpisode(ch.chapterIndex);
-          epList.appendChild(btn);
-        });
+      const res = await fetchData(url);
+      const videoUrl = res.data?.qualities?.[0]?.videoPath || res.data?.video_url || res.video_url || res.url;
+      
+      if (videoUrl) {
+        player.src = videoUrl;
+        player.play();
+        window.scrollTo(0,0);
       } else {
-        const epCount = parseInt(detailData.episode_count || 1);
-        for (let i = 1; i <= epCount; i++) {
-          const btn = document.createElement('div');
-          btn.className = 'ep-btn';
-          btn.textContent = `Ep ${i}`;
-          btn.onclick = () => playEpisode(i - 1);
-          epList.appendChild(btn);
-        }
+        alert("Video URL tidak ditemukan untuk episode ini.");
       }
-
-      content.style.display = 'none';
-      detail.style.display = 'block';
     } catch (e) {
-      alert('Gagal load detail: ' + e.message);
-      console.error('Detail error:', e);
-    } finally {
-      loading.style.display = 'none';
+      alert("Error playing episode.");
     }
   }
 
-  async function playEpisode(episodeParam) {
-    let url = '';
-    if (currentSource === 'melolo') {
-      url = `https://api.sonzaix.indevs.in/melolo/stream/${episodeParam}`;
-    } else if (currentSource === 'dramabox') {
-      url = `https://api.sonzaix.indevs.in/dramabox/stream?dramaId=\( {currentDramaId}&episodeIndex= \){episodeParam}`;
-    } else if (currentSource === 'freereels') {
-      url = `https://api.sonzaix.indevs.in/freereels/stream?dramaId=\( {currentDramaId}&episode= \){episodeParam + 1}`;
-    } else if (currentSource === 'reelshort') {
-      url = `https://api.sonzaix.indevs.in/reelshort/stream?bookId=\( {currentDramaId}&episodeNumber= \){episodeParam + 1}`;
-    }
-
-    try {
-      const proxied = proxy + encodeURIComponent(url);
-      const res = await fetch(proxied);
-      if (!res.ok) throw new Error(`Proxy error ${res.status}`);
-      const json = await res.json();
-      if (json.message !== 'success') throw new Error('Stream error');
-
-      let videoUrl = json.data?.qualities?.[0]?.videoPath ||
-                     json.data?.qualities?.[0]?.url ||
-                     json.data?.video_url ||
-                     json.video_url ||
-                     json.url;
-      if (!videoUrl) throw new Error('No video URL found (cek qualities.videoPath di response)');
-
-      player.src = videoUrl;
-      player.load();
-      player.play().catch(err => {
-        console.error('Play error:', err);
-        alert('Video siap, tapi autoplay diblok. Klik play manual boss!');
-      });
-    } catch (e) {
-      alert('Gagal play: ' + e.message + '\nCek console F12 buat detail.');
-      console.error('Play error proxied:', proxied, e);
-    }
+  function showLoading(show) {
+    loading.style.display = show ? 'block' : 'none';
   }
 
   function debounce(func, wait) {
