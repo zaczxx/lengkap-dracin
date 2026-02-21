@@ -1313,7 +1313,6 @@
 
     // Scroll to active episode
     const activeEl = document.querySelector('.episode-item.active');
-    if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     showPlayerLoading(true);
     stopPlayer();
@@ -1730,6 +1729,7 @@
       history.back();
     }
   };
+  
 </script>
 
 </body>
